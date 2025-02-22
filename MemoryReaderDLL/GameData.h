@@ -153,6 +153,37 @@ bool WriteMemory(uintptr_t moduleBase, const std::string& addrChain, int newValu
     return result;
 }
 
+bool WriteMemoryFloat(uintptr_t moduleBase, const std::string& addrChain, float newValue, bool absolute = false) {
+    uintptr_t baseOffset;
+    std::vector<uintptr_t> offsets;
+    ParseAddressChain(addrChain, baseOffset, offsets);
+
+    return WritePointerChainAlt<float>(moduleBase, baseOffset, offsets, newValue, nullptr, absolute);
+}
+
+bool WriteMemoryDouble(uintptr_t moduleBase, const std::string& addrChain, double newValue, bool absolute = false) {
+    uintptr_t baseOffset;
+    std::vector<uintptr_t> offsets;
+    ParseAddressChain(addrChain, baseOffset, offsets);
+
+    return WritePointerChainAlt<double>(moduleBase, baseOffset, offsets, newValue, nullptr, absolute);
+}
+
+template <typename T>
+bool WriteMemoryRelative(const std::string& moduleName, uintptr_t offset, T newValue) {
+    uintptr_t moduleBase = (uintptr_t)GetModuleHandleA(moduleName.c_str());
+    if (!moduleBase) return false;  // Se não conseguir obter a base do módulo, retorna falso.
+
+    uintptr_t address = moduleBase + offset;
+
+    __try {
+        *(T*)address = newValue;
+        return true;
+    }
+    __except (EXCEPTION_EXECUTE_HANDLER) {
+        return false;
+    }
+}
 #pragma endregion
 
 bool autoPlayEnabled = false; // Auto Play começa desativado
