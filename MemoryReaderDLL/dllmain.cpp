@@ -15,6 +15,9 @@
 #include <cmath>
 #include <psapi.h>
 #include <d3dx9.h>
+#include "LogConsole.h"
+#include "GameConsole.h"
+
 
 bool ShowMenu = false;
 bool ImGui_Initialised = false;
@@ -116,6 +119,7 @@ void PressSpace() {
     input.ki.dwFlags = KEYEVENTF_KEYUP;
     SendInput(1, &input, sizeof(INPUT));
 }
+
 IDirect3DTexture9* g_MyTexture = nullptr;
 HRESULT APIENTRY GHEndScene(IDirect3DDevice9* pDevice) {
     if (!ImGui_Initialised) {
@@ -181,6 +185,27 @@ HRESULT APIENTRY GHEndScene(IDirect3DDevice9* pDevice) {
             ImGui::Checkbox("Debug Info", &showDebugWindow);
             ImGui::TreePop();
         }
+
+        static bool showConsole = false;
+
+        if (ImGui::Button("Abrir Console")) {
+            showConsole = !showConsole;
+        }
+
+        if (showConsole) {
+            GameConsole::Instance().Draw("Console", &showConsole);
+        }
+
+        static bool showLogWindow = false;
+        if (ImGui::Button("Abrir LOG")) {
+            showLogWindow = !showLogWindow;
+        }
+
+        // Exibir a janela do LOG se estiver ativada
+        if (showLogWindow) {
+            LogConsole::Instance().Draw("Console LOG", &showLogWindow);
+        }
+
         /*
         if (g_MyTexture) {
             ImGui::Image(reinterpret_cast<ImTextureID>(g_MyTexture), ImVec2(90, 180));
