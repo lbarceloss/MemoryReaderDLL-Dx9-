@@ -2,7 +2,6 @@
 #include "DirectX9.h"
 #include "MemoryReader.h"
 #include "GameData.h"
-
 #include "imgui.h"
 #include "imgui_impl_dx9.h"
 #include "imgui_impl_win32.h"
@@ -43,10 +42,7 @@ DWORD WINAPI MemoryUpdateThread(LPVOID lpParameter) {
     return 0;
 }
 
-
-
 extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
-
 
 LRESULT APIENTRY WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
     // Se o menu estiver ativo, repassa as mensagens para o ImGui.
@@ -120,6 +116,10 @@ void PressSpace() {
     SendInput(1, &input, sizeof(INPUT));
 }
 
+bool IsImGuiTyping() {
+    return ImGui::IsAnyItemActive() || ImGui::GetIO().WantTextInput;
+}
+
 IDirect3DTexture9* g_MyTexture = nullptr;
 HRESULT APIENTRY GHEndScene(IDirect3DDevice9* pDevice) {
     if (!ImGui_Initialised) {
@@ -134,16 +134,10 @@ HRESULT APIENTRY GHEndScene(IDirect3DDevice9* pDevice) {
         ImGui_Initialised = true;
     }
 
-    /*
-    if (!g_MyTexture) {
-        HRESULT hr = D3DXCreateTextureFromFile(pDevice, L"C:\\Users\\lbarc\\Downloads\\1.png", &g_MyTexture);
-        if (FAILED(hr)) {
-            OutputDebugString(L"Falha ao carregar a textura 1.png\n");
+    if (!IsImGuiTyping()) {
+        if (GetAsyncKeyState(VK_F10) & 1) {
+            ShowMenu = !ShowMenu;
         }
-    }
-    */
-    if (GetAsyncKeyState(VK_F10) & 1) {
-        ShowMenu = !ShowMenu; 
     }
 
     // Variáveis que controlam a exibição das janelas extras
@@ -187,11 +181,9 @@ HRESULT APIENTRY GHEndScene(IDirect3DDevice9* pDevice) {
         }
 
         static bool showConsole = false;
-
         if (ImGui::Button("Abrir Console")) {
             showConsole = !showConsole;
         }
-
         if (showConsole) {
             GameConsole::Instance().Draw("Console", &showConsole);
         }
@@ -200,26 +192,10 @@ HRESULT APIENTRY GHEndScene(IDirect3DDevice9* pDevice) {
         if (ImGui::Button("Abrir LOG")) {
             showLogWindow = !showLogWindow;
         }
-
-        // Exibir a janela do LOG se estiver ativada
         if (showLogWindow) {
             LogConsole::Instance().Draw("Console LOG", &showLogWindow);
         }
 
-        /*
-        if (g_MyTexture) {
-            ImGui::Image(reinterpret_cast<ImTextureID>(g_MyTexture), ImVec2(90, 180));
-        }
-        else {
-            ImGui::Text("Falha ao carregar a imagem.");
-        }
-        */
-        /*
-        if (ImGui::Button("Pressionar Espaco")) {
-            PressSpace();
-        }
-        */
-        // Volta para layout único de coluna
         ImGui::Columns(1);
         ImGui::End();
     }
