@@ -158,8 +158,10 @@ d3dx9.lib;MinHook.x86.lib;%(AdditionalDependencies)</AdditionalDependencies>
     <ClInclude Include="framework.h" />
     <ClInclude Include="DirectX9.h" />
     <ClInclude Include="GameCalc.h" />
+    <ClInclude Include="GameConsole.h" />
     <ClInclude Include="GameData.h" />
     <ClInclude Include="Global.h" />
+    <ClInclude Include="LogConsole.h" />
     <ClInclude Include="MemoryReader.h" />
     <ClInclude Include="Menu.h" />
     <ClInclude Include="PangYa\imstb_rectpack.h" />
