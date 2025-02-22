@@ -1,5 +1,4 @@
-﻿#pragma once
-#include <string>
+﻿#include <string>
 #include <vector>
 #include <sstream>
 #include <cstdint>
@@ -8,11 +7,12 @@
 #include <cctype>       
 #include "GameCalc.h"   
 #include "MemoryReader.h"
+#include "LogConsole.h"
 
 uintptr_t HexStringToUint(const std::string& hexStr) {
     return static_cast<uintptr_t>(std::stoul(hexStr, nullptr, 16));
 }
-
+#pragma region Read
 void ParseAddressChain(const std::string& addrChain, uintptr_t& baseOffset, std::vector<uintptr_t>& offsets) {
     offsets.clear();
     std::stringstream ss(addrChain);
@@ -43,13 +43,13 @@ bool ReadPointerChainAlt(uintptr_t moduleBase, uintptr_t baseOffset, const std::
         for (size_t i = 0; i < offsets.size() - 1; i++) {
             addr = *(uintptr_t*)addr;
             //WriteLog("ReadPointerChainAlt: After dereference index %d, addr = 0x%08X", (int)i, addr);
-            addr += offsets[i];       
+            addr += offsets[i];
             //WriteLog("ReadPointerChainAlt: After adding offset 0x%X, addr = 0x%08X", offsets[i], addr);
         }
         addr = *(uintptr_t*)addr;
         //WriteLog("ReadPointerChainAlt: After final dereference, addr = 0x%08X", addr);
         addr += offsets.back();
-       // WriteLog("ReadPointerChainAlt: After adding final offset 0x%X, final addr = 0x%08X", offsets.back(), addr);
+        // WriteLog("ReadPointerChainAlt: After adding final offset 0x%X, final addr = 0x%08X", offsets.back(), addr);
         if (finalAddress)
             *finalAddress = addr;
         outValue = *(T*)addr;
@@ -60,6 +60,100 @@ bool ReadPointerChainAlt(uintptr_t moduleBase, uintptr_t baseOffset, const std::
         return false;
     }
 }
+
+#pragma endregion
+
+#pragma region Write
+template <typename T>
+bool WritePointerChainAlt(
+    uintptr_t moduleBase,
+    uintptr_t baseOffset,
+    const std::vector<uintptr_t>& offsets,
+    T newValue,
+    uintptr_t* finalAddress = nullptr,
+    bool absolute = false)
+{
+    __try {
+        LogConsole::Instance().AddLog("[DEBUG] Iniciando escrita na cadeia de ponteiros...");
+
+        // Calcula o endereço base: absoluto ou relativo
+        uintptr_t addr = absolute ? baseOffset : moduleBase + baseOffset;
+        LogConsole::Instance().AddLog("[INFO] Endereco base inicial: 0x%08X", addr);
+
+        // Percorre offsets até o penúltimo
+        for (size_t i = 0; i < offsets.size() - 1; i++) {
+            if (addr == 0) {
+                LogConsole::Instance().AddLog("[ERROR] Endereço nulo encontrado antes do offset %d!", (int)i);
+                return false;
+            }
+
+            // Desreferencia o ponteiro
+            uintptr_t deref = *(uintptr_t*)addr;
+            LogConsole::Instance().AddLog("[INFO] Deref [%d]: 0x%08X -> 0x%08X", (int)i, addr, deref);
+
+            if (deref == 0) {
+                LogConsole::Instance().AddLog("[ERROR] Ponteiro nulo apos dereferenciar no indice %d!", (int)i);
+                return false;
+            }
+
+            // Soma o offset
+            uintptr_t newAddr = deref + offsets[i];
+            //LogConsole::Instance().AddLog("[INFO] Adicionando offset 0x%X -> Novo endereço: 0x%08X", offsets[i], newAddr);
+
+            addr = newAddr;
+        }
+
+        // Último desreferenciamento
+        if (addr == 0) {
+            LogConsole::Instance().AddLog("[ERROR] Endereço nulo antes do ultimo dereferenciamento!");
+            return false;
+        }
+
+        uintptr_t finalDeref = *(uintptr_t*)addr;
+        //LogConsole::Instance().AddLog("[INFO] Ultimo deref: 0x%08X -> 0x%08X", addr, finalDeref);
+
+        if (finalDeref == 0) {
+            LogConsole::Instance().AddLog("[ERROR] Ponteiro nulo no ultimo dereferenciamento!");
+            return false;
+        }
+
+        // Soma o último offset
+        finalDeref += offsets.back();
+        LogConsole::Instance().AddLog("[INFO] Endereço final para escrita: 0x%08X", finalDeref);
+
+        // Se quiser retornar o endereço final
+        if (finalAddress) {
+            *finalAddress = finalDeref;
+        }
+
+        // Escreve o valor
+        *(T*)finalDeref = newValue;
+        LogConsole::Instance().AddLog("[SUCCESS] Escrito valor %d no endereço 0x%08X", newValue, finalDeref);
+
+        return true;
+    }
+    __except (EXCEPTION_EXECUTE_HANDLER) {
+        LogConsole::Instance().AddLog("[ERROR] Exceção ocorreu ao tentar escrever na memória!");
+        return false;
+    }
+}
+
+
+bool WriteMemory(uintptr_t moduleBase, const std::string& addrChain, int newValue, bool absolute = false) {
+    uintptr_t baseOffset;
+    std::vector<uintptr_t> offsets;
+    ParseAddressChain(addrChain, baseOffset, offsets);
+
+    LogConsole::Instance().AddLog("[DEBUG] Tentando escrever na memoria no endereço: %s", addrChain.c_str());
+    bool result = WritePointerChainAlt<int>(moduleBase, baseOffset, offsets, newValue, nullptr, absolute);
+
+    if (!result) {
+        LogConsole::Instance().AddLog("[ERROR] Falha ao escrever no endereco: %s", addrChain.c_str());
+    }
+    return result;
+}
+
+#pragma endregion
 
 bool autoPlayEnabled = false; // Auto Play começa desativado
 
