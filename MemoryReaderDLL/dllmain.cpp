@@ -44,12 +44,32 @@ DWORD WINAPI MemoryUpdateThread(LPVOID lpParameter) {
 
 extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
+/*
 LRESULT APIENTRY WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
     // Se o menu estiver ativo, repassa as mensagens para o ImGui.
     if (ShowMenu) {
         if (ImGui_ImplWin32_WndProcHandler(hwnd, uMsg, wParam, lParam))
             return true;
     }
+    return CallWindowProc(Process::WndProc, hwnd, uMsg, wParam, lParam);
+}
+*/
+LRESULT APIENTRY WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+{
+    if (ImGui_ImplWin32_WndProcHandler(hwnd, uMsg, wParam, lParam))
+        return 0;
+
+    if (ShowMenu && (uMsg == WM_KEYDOWN || uMsg == WM_KEYUP || uMsg == WM_CHAR))
+    {
+        ImGuiIO& io = ImGui::GetIO();
+        if (io.WantTextInput)
+        {
+            if (wParam == VK_RETURN)
+                return 0;
+            return 0;
+        }
+    }
+
     return CallWindowProc(Process::WndProc, hwnd, uMsg, wParam, lParam);
 }
 
@@ -121,6 +141,7 @@ bool IsImGuiTyping() {
 }
 
 IDirect3DTexture9* g_MyTexture = nullptr;
+
 HRESULT APIENTRY GHEndScene(IDirect3DDevice9* pDevice) {
     if (!ImGui_Initialised) {
         ImGui::CreateContext();
