@@ -72,6 +72,9 @@
     <ClInclude Include="GameConsole.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="smart_calculator.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dllmain.cpp">
@@ -102,6 +105,12 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="PangYa\imgui_impl_win32.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="smart_calculator.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="GameDate.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

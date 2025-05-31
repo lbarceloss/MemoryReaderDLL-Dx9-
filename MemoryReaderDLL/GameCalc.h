@@ -10,6 +10,13 @@
 
 namespace GameCalc {
 
+    inline int Terrain(int terrain_raw_value) {
+        if (terrain_raw_value < 0) return 100;
+        int percentage = 100 - terrain_raw_value;
+        if (percentage < 0) percentage = 0;
+        return percentage;
+    }
+
     double BallBreak(double x, double y, double ballX, double ballY) {
         double PIXEL_CONST = 1 / 0.00875;
         double DEGREE = 180.0 / M_PI;
@@ -62,10 +69,6 @@ namespace GameCalc {
 
     double Height(double x1, double x2) {
         return round((x2 - x1 + 0.14) * (0.312495 * 0.914) * 10.0) / 10.0;
-    }
-
-    int Terrain(int x) {
-        return 100 - x;
     }
 
     std::string Spin(double spinMem, double spinMaxMem) {

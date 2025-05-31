@@ -13,6 +13,12 @@ public:
     bool assistEnabled = false; // Estado do assist (On/Off)
     int typeShot = 0; // 0 = Dunk, 1 = Toma, 2 = Cobra, 3 = Spike
 
+    static size_t write_callback(void* contents, size_t size, size_t nmemb, std::string* output) {
+        size_t total_size = size * nmemb;
+        output->append(static_cast<char*>(contents), total_size);
+        return total_size;
+    }
+
     static GameConsole& Instance() {
         static GameConsole instance;
         return instance;
@@ -55,6 +61,7 @@ public:
             AddLog("    [3] Spike.");
             AddLog("@precise on/off - Ativa/desativa precisao.");
         }
+        /*
         else if (command == "@assist on") {
             WriteMemory(moduleBase, "00B006E8,1C,C,C,14,18,0,54", 66, false) ?
                 AddLog("[SUCCESS] Assist ativado!") : AddLog("[ERROR] Falha ao ativar assist!");
@@ -147,7 +154,6 @@ public:
                 AddLog("[ERROR] Valor invalido! Use de -30 a 30.");
             }
         }
-
         // Utils
         else if (command == "/gamesets") {
             AddLog("@gravity - Define gravidade.");
@@ -157,6 +163,7 @@ public:
             AddLog("@spinconst - Define constante de spin.");
             AddLog("@utilsreset - Reseta valores para os padroes.");
         }
+        /*
         else if (command.rfind("@gravity ", 0) == 0) {
             double gravity;
             std::istringstream ss(command.substr(9));
@@ -201,7 +208,9 @@ public:
         else {
             AddLog("[ERROR] Comando desconhecido! Digite /help para ajuda.");
         }
+        */
     }
+    
 
     void Draw(const char* title, bool* open = nullptr) {
         if (!ImGui::Begin(title, open, ImGuiWindowFlags_NoCollapse)) {
